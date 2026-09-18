@@ -17,6 +17,7 @@ async function main() {
         create: {
             id: "user_123",
             email: "test@example.com",
+            password: "password123",
         },
     });
 
