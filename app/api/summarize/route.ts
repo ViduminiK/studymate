@@ -1,30 +1,26 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(req: Request) {
     try {
-        const { text, mode } = await req.json();
+        const { text } = await req.json();
 
-        if (!text || text.trim().length === 0) {
+        if (!text) {
             return NextResponse.json({ error: "Text is required" }, { status: 400 });
         }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+        const response = await ai.models.generateContent({
+            model: "gemini-3.6-flash",
+            contents: `Summarize the following text into clear bullet points and key takeaways:\n\n${text}`,
+        });
 
-        const prompt = `You are an expert study assistant. Summarize the following lecture notes using clear, bulleted markdown format.
-Mode requested: ${mode} (Options: concise = brief key points, detailed = deep breakdown with examples).
-
-Notes:
-${text}`;
-
-        const result = await model.generateContent(prompt);
-        const summary = result.response.text();
+        const summary = response.text || "Failed to generate summary.";
 
         return NextResponse.json({ summary });
     } catch (error) {
-        console.error("Summarize Error:", error);
+        console.error("Summarize API Error:", error);
         return NextResponse.json(
             { error: "Failed to generate summary" },
             { status: 500 }
