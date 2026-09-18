@@ -13,29 +13,35 @@ export async function POST(req: Request) {
 
         const prompt = `Create 5 study flashcards for "${topic}".
 Return ONLY a valid JSON array of objects with "question" and "answer" properties.
-Do NOT output markdown backticks or any conversation.
+Do NOT output markdown backticks or extra text.
 Example:
 [
   {"question": "What is an API?", "answer": "Application Programming Interface."}
 ]`;
 
         const response = await ai.models.generateContent({
-            model: "gemini-3.6-flash",
+            model: "gemini-2.5-flash",
             contents: prompt,
         });
 
         let rawText = response.text || "[]";
-
-        // Clean up code block backticks if returned
         rawText = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
 
         const flashcards = JSON.parse(rawText);
 
         return NextResponse.json({ flashcards });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Flashcards API Error:", error);
+
+        if (error?.status === 429 || error?.toString().includes("429")) {
+            return NextResponse.json(
+                { error: "API rate limit reached. Please wait a minute and try again." },
+                { status: 429 }
+            );
+        }
+
         return NextResponse.json(
-            { error: "Failed to generate flashcards" },
+            { error: "Failed to generate flashcards." },
             { status: 500 }
         );
     }
