@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
         const response = await ai.models.generateContent({
             model: "gemini-3.6-flash",
-            contents: `Summarize the following text into clear bullet points and key takeaways:\n\n${text}`,
+            contents: `Summarize the following text into clear, concise key points:\n\n${text}`,
         });
 
         const summary = response.text || "Failed to generate summary.";

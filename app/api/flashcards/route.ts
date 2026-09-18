@@ -11,11 +11,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Topic is required" }, { status: 400 });
         }
 
-        const prompt = `Create 5 flashcards for the topic "${topic}". 
-Return ONLY a valid JSON array of objects with "question" and "answer" fields. Do not include markdown formatting or backticks.
-Example format:
+        const prompt = `Create 5 study flashcards for "${topic}".
+Return ONLY a valid JSON array of objects with "question" and "answer" properties.
+Do NOT output markdown backticks or any conversation.
+Example:
 [
-  {"question": "What is API?", "answer": "Application Programming Interface"}
+  {"question": "What is an API?", "answer": "Application Programming Interface."}
 ]`;
 
         const response = await ai.models.generateContent({
@@ -23,12 +24,12 @@ Example format:
             contents: prompt,
         });
 
-        let responseText = response.text || "[]";
+        let rawText = response.text || "[]";
 
         // Clean up code block backticks if returned
-        responseText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+        rawText = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
 
-        const flashcards = JSON.parse(responseText);
+        const flashcards = JSON.parse(rawText);
 
         return NextResponse.json({ flashcards });
     } catch (error) {
